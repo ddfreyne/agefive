@@ -22,8 +22,7 @@
 # http://www.dalcanton.it/tito/esperimenti/riven/mohawk-archive-format.html,
 # contains inline Metadata on what data an archive contains, and where. Since
 # this information is unlikely to change often (if at all), it is useful to
-# cache this information when first gathered, and to only look it up again
-# when changed. (Such a change is determined by a different file checksum.)
+# cache it when first gathered.
 # This also especially helps with the 5-CD-ROM version, where four out of five
 # media (and thus, their archive Metadata) are typically offline.
 
@@ -45,17 +44,14 @@ class MohawkCatalog
 		@resourceDirOffset = resourceDirOffset
 		@fileTableOffset = relativeFileTableOffset + @resourceDirOffset
 		@fileTableSize = fileTableSize
-
 		@resourceNameListOffset = relativeResourceNameListOffset + @resourceDirOffset
-
 		@types = types
 		@nameTables = nameTables
-
+		@resourceTables = resourceTables
+		@resourceNames = resourceNames
 		@fileTable = fileTable
 
-		# @resourceTables = resourceTables
-		# @resourceNames = resourceNames
-		# @files = files
+		File.open('/Users/chucker/Desktop/foo.yaml', 'w') { |output| YAML.dump(self, output) }
 	end
 
 	def verifyHeaders
@@ -143,6 +139,7 @@ class MohawkCatalog
 		# {offset relative to name list, resource index}
 
 		# FIXME: iteration bug in here /somewhere/
+		# FIXME: this seems to be way too slow!
 
 		mhkFile = File.new(@mhkPath, 'r')
 
@@ -159,15 +156,15 @@ class MohawkCatalog
 				offset = mhkFile.read(2).unpack('n')[0]
 				index = mhkFile.read(2).unpack('n')[0]
 
-				oldOffset = mhkFile.pos
+				# oldOffset = mhkFile.pos
 
-				mhkFile.seek(@resourceNameListOffset + offset)
-				name = mhkFile.gets("\0")
-				mhkFile.seek(oldOffset+2)
+				# mhkFile.seek(@resourceNameListOffset + offset)
+				# name = mhkFile.gets("\0")
+				# mhkFile.seek(oldOffset+2)
 
 				nameEntry << offset
 				nameEntry << index
-				nameEntry << name
+				# nameEntry << name
 
 				nameTable << nameEntry
 			end
@@ -175,7 +172,38 @@ class MohawkCatalog
 			nameTables << nameTable
 		end
 
+		@resourceTablesOffset = mhkFile.pos
+
 		return nameTables
+	end
+
+	def resourceTables
+		mhkFile = File.new(@mhkPath, 'r')
+
+		mhkFile.seek(@resourceTablesOffset)
+
+		resourceTables = Array.new()
+
+		@types.size.times do |n|
+			resourceTable = Array.new()
+
+			mhkFile.read(2).unpack('n')[0].times do |n|
+				resourceEntry = Array.new()
+
+				resourceID = mhkFile.read(2).unpack('n')[0]
+				fileTableIndex = mhkFile.read(2).unpack('n')[0] - 1
+
+				resourceEntry << resourceID
+				resourceEntry << fileTableIndex
+			end
+
+			resourceTables << resourceTable
+		end
+
+		return resourceTables
+	end
+
+	def resourceNames
 	end
 
 	def fileTable
