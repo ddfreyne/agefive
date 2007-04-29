@@ -51,16 +51,7 @@ class MohawkCatalog
 		@types = types
 		@nameTables = nameTables
 
-#		puts @types[0].humanName
-
-#		puts @nameTables.size
-#		puts @nameTables[0].size
-#		puts @nameTables[0][0].size
-		@nameTables[0].each {
-			|item|
-#			puts @resourceNameListOffset + item[0]
-#			puts item[2]
-		}
+		@fileTable = fileTable
 
 		# @resourceTables = resourceTables
 		# @resourceNames = resourceNames
@@ -172,7 +163,6 @@ class MohawkCatalog
 
 				mhkFile.seek(@resourceNameListOffset + offset)
 				name = mhkFile.gets("\0")
-				puts name
 				mhkFile.seek(oldOffset+2)
 
 				nameEntry << offset
@@ -186,5 +176,34 @@ class MohawkCatalog
 		end
 
 		return nameTables
+	end
+
+	def fileTable
+		# @fileTable[a] will contain:
+		# {absolute offset, size}
+
+		mhkFile = File.new(@mhkPath, 'r')
+
+		mhkFile.seek(@fileTableOffset)
+
+		fileTable = Array.new()
+
+		mhkFile.read(4).unpack('N')[0].times do |n|
+			item = Array.new()
+		
+			offset = mhkFile.read(4).unpack('N')[0]
+		
+			size = mhkFile.read(2).unpack('n')[0]
+			size += mhkFile.read(1).unpack('C')[0] * 65536
+
+			item << offset
+			item << size
+		
+			fileTable << item
+		
+			mhkFile.seek(3, IO::SEEK_CUR)
+		end
+
+		return fileTable
 	end
 end
