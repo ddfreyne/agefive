@@ -177,9 +177,13 @@ class MohawkCatalog
 		@types.size.times do |n|
 			resourceTable = Array.new()
 
+# TODO: what *is* the type?
+
 			mhkFile.read(2).unpack('n')[0].times do |n|
 				resourceEntry = Array.new()
 
+# TODO: should be:
+# resourceTable << Resource.new(currentType, mhkFile.read(2).unpack('n')[0], mhkFile.read(2).unpack('n')[0] - 1)
 				resourceID = mhkFile.read(2).unpack('n')[0]
 				fileTableIndex = mhkFile.read(2).unpack('n')[0] - 1
 
