@@ -25,6 +25,10 @@ class ResourceType
 		@nameTableOffset = nameTableOffset
 	end
 
+	def name
+		return @typeIdentifier
+	end
+
 	def humanName
 		case @typeIdentifier
 		when 'tBMP'
