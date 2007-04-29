@@ -28,20 +28,36 @@
 
 require 'yaml'
 require 'Backend/OSInfo'
+require 'Backend/ResourceType'
 
 class MohawkCatalog
 	attr_reader(:sourceType)
 
-	def initialize()
-		osInfo = OSInfo.new
-		puts osInfo.applicationSupport
+	def initialize(mhkPath)
+		# osInfo = OSInfo.new
+		# puts osInfo.applicationSupport
 
-		verifyHeaders('/Users/chucker/Repositories/agefive/non-svn/Extras.MHK')
-		resourceInfo('/Users/chucker/Repositories/agefive/non-svn/Extras.MHK')
+		@mhkPath = mhkPath
+
+		verifyHeaders
+
+		@resourceDirOffset = resourceDirOffset
+		@fileTableOffset = relativeFileTableOffset + @resourceDirOffset
+		@fileTableSize = fileTableSize
+
+		@typesArray = typesArray
+
+		
+
+		puts @mhkPath+' has the following resource types: '
+		@typesArray.each {
+			|item|
+			puts item.humanName
+		}
 	end
 
-	def verifyHeaders(mhkPath)
-		mhkFile = File.new(mhkPath, 'r')
+	def verifyHeaders
+		mhkFile = File.new(@mhkPath, 'r')
 
 		if mhkFile.read(4).to_s != "MHWK" # IFF chunk signature
 			return false
@@ -64,16 +80,48 @@ class MohawkCatalog
 		mhkFile.close
 	end
 
-	def resourceInfo(mhkPath)
-		mhkFile = File.new(mhkPath, 'r')
+	def resourceDirOffset
+		mhkFile = File.new(@mhkPath, 'r')
 
 		mhkFile.seek(20)
 
-		puts mhkFile.read(4).unpack('N')[0]
-		puts mhkFile.read(4).unpack('n')[0]
-		puts mhkFile.read(4).unpack('n')[0]
+		return mhkFile.read(4).unpack('N')[0]
 
-		return true
+		mhkFile.close # FIXME: find way to actually close file before returning
+	end
+
+	def relativeFileTableOffset
+		mhkFile = File.new(@mhkPath, 'r')
+
+		mhkFile.seek(24)
+
+		return mhkFile.read(2).unpack('n')[0]
+
+		mhkFile.close
+	end
+
+	def fileTableSize
+		mhkFile = File.new(@mhkPath, 'r')
+
+		mhkFile.seek(26)
+
+		return mhkFile.read(2).unpack('n')[0]
+
+		mhkFile.close
+	end
+
+	def typesArray
+		mhkFile = File.new(@mhkPath, 'r')
+
+		mhkFile.seek(30)
+
+		typesArray = Array.new()
+
+		mhkFile.read(2).unpack('n')[0].times do |n|
+			typesArray << ResourceType.new(mhkFile.read(4).to_s, mhkFile.read(2).unpack('n')[0], mhkFile.read(2).unpack('n')[0])
+		end
+
+		return typesArray
 
 		mhkFile.close
 	end
