@@ -5,6 +5,7 @@
 #
 # MohawkCatalog: Caching Mohawk archive contents
 #
+# Created by Sören Nils Kuklau
 # Copyright (c) 2007. Some rights reserved.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -45,15 +46,25 @@ class MohawkCatalog
 		@fileTableOffset = relativeFileTableOffset + @resourceDirOffset
 		@fileTableSize = fileTableSize
 
-		@typesArray = typesArray
+		@resourceNameListOffset = relativeResourceNameListOffset + @resourceDirOffset
 
-		
+		@types = types
+		@nameTables = nameTables
 
-		puts @mhkPath+' has the following resource types: '
-		@typesArray.each {
+#		puts @types[0].humanName
+
+#		puts @nameTables.size
+#		puts @nameTables[0].size
+#		puts @nameTables[0][0].size
+		@nameTables[0].each {
 			|item|
-			puts item.humanName
+#			puts @resourceNameListOffset + item[0]
+#			puts item[2]
 		}
+
+		# @resourceTables = resourceTables
+		# @resourceNames = resourceNames
+		# @files = files
 	end
 
 	def verifyHeaders
@@ -110,19 +121,70 @@ class MohawkCatalog
 		mhkFile.close
 	end
 
-	def typesArray
+	def relativeResourceNameListOffset
 		mhkFile = File.new(@mhkPath, 'r')
 
-		mhkFile.seek(30)
+		mhkFile.seek(@resourceDirOffset)
 
-		typesArray = Array.new()
-
-		mhkFile.read(2).unpack('n')[0].times do |n|
-			typesArray << ResourceType.new(mhkFile.read(4).to_s, mhkFile.read(2).unpack('n')[0], mhkFile.read(2).unpack('n')[0])
-		end
-
-		return typesArray
+		return mhkFile.read(2).unpack('n')[0]
 
 		mhkFile.close
+	end
+
+	def types
+		mhkFile = File.new(@mhkPath, 'r')
+
+		mhkFile.seek(@resourceDirOffset + 2)
+
+		types = Array.new()
+
+		mhkFile.read(2).unpack('n')[0].times do |n|
+			types << ResourceType.new(mhkFile.read(4).to_s, mhkFile.read(2).unpack('n')[0], mhkFile.read(2).unpack('n')[0])
+		end
+
+		return types
+
+		mhkFile.close
+	end
+
+	def nameTables
+		# @nameTables[a][b] will contain:
+		# {offset relative to name list, resource index}
+
+		# FIXME: iteration bug in here /somewhere/
+
+		mhkFile = File.new(@mhkPath, 'r')
+
+		mhkFile.seek(@resourceDirOffset + 4 + @types.size * 8)
+
+		nameTables = Array.new()
+
+		@types.size.times do |n|
+			nameTable = Array.new()
+
+			mhkFile.read(2).unpack('n')[0].times do |n|
+				nameEntry = Array.new()
+
+				offset = mhkFile.read(2).unpack('n')[0]
+				index = mhkFile.read(2).unpack('n')[0]
+
+				oldOffset = mhkFile.pos
+
+				mhkFile.seek(@resourceNameListOffset + offset)
+				name = mhkFile.gets("\0")
+				puts name
+				mhkFile.seek(oldOffset+2)
+
+				nameEntry << offset
+				nameEntry << index
+				nameEntry << name
+
+				nameTable << nameEntry
+			end
+
+			nameTables << nameTable
+		end
+
+		return nameTables
 	end
 end
