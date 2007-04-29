@@ -138,9 +138,6 @@ class MohawkCatalog
 		# @nameTables[a][b] will contain:
 		# {offset relative to name list, resource index}
 
-		# FIXME: iteration bug in here /somewhere/
-		# FIXME: this seems to be way too slow!
-
 		mhkFile = File.new(@mhkPath, 'r')
 
 		mhkFile.seek(@resourceDirOffset + 4 + @types.size * 8)
@@ -156,15 +153,8 @@ class MohawkCatalog
 				offset = mhkFile.read(2).unpack('n')[0]
 				index = mhkFile.read(2).unpack('n')[0]
 
-				# oldOffset = mhkFile.pos
-
-				# mhkFile.seek(@resourceNameListOffset + offset)
-				# name = mhkFile.gets("\0")
-				# mhkFile.seek(oldOffset+2)
-
 				nameEntry << offset
 				nameEntry << index
-				# nameEntry << name
 
 				nameTable << nameEntry
 			end
@@ -195,6 +185,8 @@ class MohawkCatalog
 
 				resourceEntry << resourceID
 				resourceEntry << fileTableIndex
+
+				resourceTable << resourceEntry
 			end
 
 			resourceTables << resourceTable
@@ -204,6 +196,13 @@ class MohawkCatalog
 	end
 
 	def resourceNames
+		# TODO: implement, efficiently, and with correct iteration
+
+		# oldOffset = mhkFile.pos
+
+		# mhkFile.seek(@resourceNameListOffset + offset)
+		# name = mhkFile.gets("\0")
+		# mhkFile.seek(oldOffset+2)
 	end
 
 	def fileTable
