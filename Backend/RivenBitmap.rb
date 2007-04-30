@@ -40,9 +40,6 @@ class RivenBitmap
 		headers
 
 		@palette = palette unless truecolor?
-
-		puts @palette.size
-		puts @palette[0].size
 	end
 
 	def headers
@@ -99,9 +96,14 @@ class RivenBitmap
 		file = File.new(path, 'w')
 
 		file.write("BM") # magic word
-		file.write([1086].pack('L')) # bitmap data size (file size?)
+		file.write([1940].pack('L')) # bitmap data size (file size?)
 		file.write("AgFv") # vendor information
-		file.write("EFGH") # bitmap data offset
+
+		if truecolor?
+			file.write([(14 + 40)].pack('L')) # bitmap data offset
+		else
+			file.write([(14 + 40 + (256*4))].pack('L')) # bitmap data offset
+		end
 
 		file.write([40].pack('L')) # header size
 		file.write([@width].pack('L'))
@@ -131,15 +133,13 @@ class RivenBitmap
 
 		# FIXME: appears to give incorrect palette
 		@palette.each do |color|
-			file.write((color + [0]).pack('L'))
+			file.write((color + ['\0']).pack('L'))
 		end
 
 		# TODO: fill with actual, non-random image data
 		srand 1234
 		(@width*@height).times do
-			foo = rand(255)
-			puts foo
-			file.write([foo].pack('C'))
+			file.write([rand(255)].pack('C'))
 		end
 	end
 end
