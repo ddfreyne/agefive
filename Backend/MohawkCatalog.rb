@@ -123,7 +123,7 @@ class MohawkCatalog
 
 		mhkFile.seek(@resourceDirOffset + 2)
 
-		types = Array.new()
+		types = []
 
 		mhkFile.read(2).unpack('n')[0].times do |n|
 			types << ResourceType.new(mhkFile.read(4).to_s, mhkFile.read(2).unpack('n')[0], mhkFile.read(2).unpack('n')[0])
@@ -142,13 +142,13 @@ class MohawkCatalog
 
 		mhkFile.seek(@resourceDirOffset + 4 + @types.size * 8)
 
-		nameTables = Array.new()
+		nameTables = []
 
 		@types.size.times do |n|
-			nameTable = Array.new()
+			nameTable = []
 
 			mhkFile.read(2).unpack('n')[0].times do |n|
-				nameEntry = Array.new()
+				nameEntry = []
 
 				offset = mhkFile.read(2).unpack('n')[0]
 				index = mhkFile.read(2).unpack('n')[0]
@@ -164,6 +164,8 @@ class MohawkCatalog
 
 		@resourceTablesOffset = mhkFile.pos
 
+		mhkFile.close
+
 		return nameTables
 	end
 
@@ -172,15 +174,15 @@ class MohawkCatalog
 
 		mhkFile.seek(@resourceTablesOffset)
 
-		resourceTables = Array.new()
+		resourceTables = []
 
 		@types.size.times do |n|
-			resourceTable = Array.new()
+			resourceTable = []
 
 # TODO: what *is* the type?
 
 			mhkFile.read(2).unpack('n')[0].times do |n|
-				resourceEntry = Array.new()
+				resourceEntry = []
 
 # TODO: should be:
 # resourceTable << Resource.new(currentType, mhkFile.read(2).unpack('n')[0], mhkFile.read(2).unpack('n')[0] - 1)
@@ -195,6 +197,8 @@ class MohawkCatalog
 
 			resourceTables << resourceTable
 		end
+
+		mhkFile.close
 
 		return resourceTables
 	end
@@ -217,10 +221,10 @@ class MohawkCatalog
 
 		mhkFile.seek(@fileTableOffset)
 
-		fileTable = Array.new()
+		fileTable = []
 
 		mhkFile.read(4).unpack('N')[0].times do |n|
-			item = Array.new()
+			item = []
 		
 			offset = mhkFile.read(4).unpack('N')[0]
 		
@@ -234,6 +238,8 @@ class MohawkCatalog
 		
 			mhkFile.seek(3, IO::SEEK_CUR)
 		end
+
+		mhkFile.close
 
 		return fileTable
 	end
