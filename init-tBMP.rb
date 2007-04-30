@@ -23,3 +23,6 @@ require 'Backend/RivenBitmap'
 tBMP = RivenBitmap.new('/Users/chucker/Repositories/agefive/non-svn/tBMP', 0, 1382)
 
 tBMP.dumpBMP('/Users/chucker/Repositories/agefive/non-svn/tBMP.bmp')
+# tBMP = RivenBitmap.new('/Users/chucker/Repositories/agefive/non-svn/200', 0, 844)
+# 
+# tBMP.dumpBMP('/Users/chucker/Repositories/agefive/non-svn/200.bmp')

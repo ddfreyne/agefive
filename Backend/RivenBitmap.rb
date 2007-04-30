@@ -64,13 +64,7 @@ class RivenBitmap
 		file.seek(@offset+8+4) # skipping headers and unknown field
 
 		256.times do |i|
-			color = Array.new()
-
-			3.times do
-				color << file.read(1).unpack('C')[0]
-			end
-
-			palette << color
+			palette << file.read(3).unpack('CCC')
 		end
 
 		return palette
@@ -131,9 +125,13 @@ class RivenBitmap
 
 		file.write([0].pack('L')) # important colors
 
-		# FIXME: appears to give incorrect palette
-		@palette.each do |color|
-			file.write((color + ['\0']).pack('L'))
+		unless truecolor?
+			@palette.each do |color|
+				file.write([color[0]].pack('C'))
+				file.write([color[1]].pack('C'))
+				file.write([color[2]].pack('C'))
+				file.write([0].pack('C'))
+			end
 		end
 
 		# TODO: fill with actual, non-random image data
