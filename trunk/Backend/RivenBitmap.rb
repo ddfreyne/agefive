@@ -39,7 +39,27 @@ class RivenBitmap
 
 		headers
 
-		@palette = palette unless truecolor?
+		if truecolor?
+			@palette = palette
+		else
+			@dataOffset = @offset+8+4
+		end
+
+		if compressed?
+			@data = decompressedData
+		else
+			@data = data
+		end
+	end
+
+	def data
+		file = File.new(@path, 'r')
+		file.seek(@dataOffset)
+	end
+
+	def decompressedData
+		file = File.new(@path, 'r')
+		file.seek(@dataOffset)
 	end
 
 	def headers
@@ -53,12 +73,14 @@ class RivenBitmap
 
 		@compressed = file.read(1).unpack('C')[0]
 		@truecolor = file.read(1).unpack('C')[0]
+
+		file.close
 	end
 
 	def palette
 		# in BGR form
 
-		palette = Array.new()
+		palette = []
 
 		file = File.new(@path, 'r')
 		file.seek(@offset+8+4) # skipping headers and unknown field
@@ -66,6 +88,10 @@ class RivenBitmap
 		256.times do |i|
 			palette << file.read(3).unpack('CCC')
 		end
+
+		@dataOffset = file.pos
+
+		file.close
 
 		return palette
 	end
@@ -90,7 +116,7 @@ class RivenBitmap
 		file = File.new(path, 'w')
 
 		file.write("BM") # magic word
-		file.write([1940].pack('L')) # bitmap data size (file size?)
+		file.write([1940].pack('L')) # bitmap data size (file size?), apparently ignored
 		file.write([0].pack('L')) # vendor info, unused
 
 		if truecolor?
