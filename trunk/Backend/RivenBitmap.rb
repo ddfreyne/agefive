@@ -40,7 +40,7 @@ class RivenBitmap
 		headers
 
 		if truecolor?
-			@dataOffset = @offset+8+4
+			@dataOffset = @offset+8+4+4
 		else
 			@palette = palette
 		end
@@ -50,6 +50,24 @@ class RivenBitmap
 		else
 			@data = data
 		end
+
+		puts @data.size
+	end
+
+	def compressed?
+		if @compressed == 4
+			return true
+		else
+			return false
+		end
+	end
+
+	def truecolor?
+		# if @truecolor == 4
+		# 	return true
+		# else
+			return false
+		# end
 	end
 
 	def data
@@ -60,6 +78,46 @@ class RivenBitmap
 	def decompressedData
 		file = File.new(@path, 'r')
 		file.seek(@dataOffset)
+
+		data = []
+
+		done = 0
+
+		(@size - @dataOffset).times do # FIXME: that's not quite right. we need to really stop at eof
+			if done == 1
+				return data
+			end
+
+			byte = file.getc
+
+			case byte
+			when 0x00
+				puts "done!"
+				done = 1
+				break
+			when 0x01..0x3f
+				puts "outputting "+(byte*2).to_s+" pixels:"
+				(byte*2).times do
+					data << file.read(1).unpack('C')
+				end
+				done = 1 # FIXME: temporary
+				next
+			when 0x40..0x7f
+				puts "repeat last 2 pixels "+(byte-0x40).to_s+" times!"
+				next
+			when 0x80..0xbf
+				puts "repeat last 4 pixels "+(byte-0x80).to_s+" times!"
+				next
+			when 0xc0..0xff
+				puts (byte-0xc0).to_s+" subcommands will follow!"
+				next
+			else
+				puts "something else, ooh"
+				next
+			end
+		end
+
+		return data
 	end
 
 	def headers
@@ -89,27 +147,11 @@ class RivenBitmap
 			palette << file.read(3).unpack('CCC')
 		end
 
-		@dataOffset = file.pos
+		@dataOffset = file.pos+4
 
 		file.close
 
 		return palette
-	end
-
-	def compressed?
-		if @compressed == 4
-			return true
-		else
-			return false
-		end
-	end
-
-	def truecolor?
-		# if @truecolor == 4
-		# 	return true
-		# else
-			return false
-		# end
 	end
 
 	def dumpBMP(path)
