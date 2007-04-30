@@ -97,7 +97,7 @@ class RivenBitmap
 
 		file.write("BM") # magic word
 		file.write([1940].pack('L')) # bitmap data size (file size?)
-		file.write("AgFv") # vendor information
+		file.write([0].pack('L')) # vendor info, unused
 
 		if truecolor?
 			file.write([(14 + 40)].pack('L')) # bitmap data offset
@@ -124,9 +124,9 @@ class RivenBitmap
 		file.write([(72/0.0254).round].pack('L')) #  resolution in pixels per meter
 
 		if truecolor?
-			file.write([16777216].pack('S'))
+			file.write([16777216].pack('L'))
 		else
-			file.write([256].pack('S'))
+			file.write([256].pack('L'))
 		end
 
 		file.write([0].pack('L')) # important colors
@@ -138,8 +138,15 @@ class RivenBitmap
 
 		# TODO: fill with actual, non-random image data
 		srand 1234
-		(@width*@height).times do
-			file.write([rand(255)].pack('C'))
+		@height.downto(0) do |row| # rows are stored backwards
+			@width.times do |column|
+				file.write([rand(255)].pack('C'))
+			end
 		end
+		# (@width*@height).times do
+		# 	file.write([rand(255)].pack('C'))
+		# end
+
+		file.close
 	end
 end
