@@ -40,9 +40,9 @@ class RivenBitmap
 		headers
 
 		if truecolor?
-			@palette = palette
-		else
 			@dataOffset = @offset+8+4
+		else
+			@palette = palette
 		end
 
 		if compressed?
