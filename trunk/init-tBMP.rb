@@ -22,7 +22,4 @@ require 'Backend/RivenBitmap'
 
 tBMP = RivenBitmap.new('/Users/chucker/Repositories/agefive/non-svn/tBMP', 0, 1382)
 
-puts tBMP.width
-puts tBMP.height
-puts tBMP.compressed?
-puts tBMP.truecolor?
+tBMP.dumpBMP('/Users/chucker/Repositories/agefive/non-svn/tBMP.bmp')
