@@ -114,7 +114,7 @@ class RivenBitmap
 	end
 
 	def decompressedData
-		@dataOffset += 4
+		@dataOffset += 4 # unknown; can be ignored
 
 		file = File.new(@path, 'r')
 		file.seek(@dataOffset)
@@ -165,45 +165,46 @@ class RivenBitmap
 
 					case subbyte
 					when 0x01..0x0f
-						# repeat duplet subbyte duplets before
-						puts "repeat duplet "+subbyte.to_s+" duplets before"
+						m = subbyte.divmod(16)[1]
 
-						data += data.slice(-subbyte*2, subbyte*2)
+						data += data.slice(-m*2, m*2)
 
 						next
 					when 0x10
-						# repeat last duplet, but change second pixel to next byte
-						puts "repeat last duplet, but change second pixel"
-
 						data += data.slice(-2, 1)
 						data << file.getc
 
 						next
 					when 0x11-0x1f
+						m = subbyte.divmod(16)[1]
+
 						data += data.slice(-2, 1)
-						data += data.slice(-(subbyte-0x10), 1)
+						data += data.slice(-m, 1)
 
 						next
 					when 0x20-0x2f
+						x = subbyte.divmod(16)[1]
+
 						data += data.last(2)
-						data.last += (subbyte-0x20)
+						data.last += x
 
 						next
 					when 0x30-0x3f
+						x = subbyte.divmod(16)[1]
+
 						data += data.last(2)
-						data.last -= (subbyte-0x30)
+						data.last -= x
 
 						next
 					when 0x40
-						# repeat last duplet, but change first pixel to next byte
-						puts "repeat last duplet, but change first pixel"
-
 						data << file.read(1)
 						data += data.slice(-2, 1)
 
 						next
 					when 0x41-0x4f
-						data += data.slice(-(subbyte-0x40), 1)
+						m = subbyte.divmod(16)[1]
+
+						data += data.slice(-m, 1)
 						data += data.slice(-2, 1)
 
 						next
@@ -214,32 +215,44 @@ class RivenBitmap
 
 						next
 					when 0x51-0x57
-						data += data.slice(-(subbyte-0x50), 1)
+						m = subbyte.divmod(8)[1]
+
+						data += data.slice(-m, 1)
 						data << file.getc
 
 						next
 					when 0x59-0x5f
+						m = subbyte.divmod(8)[1]
+
 						data << file.getc
-						data += data.slice(-(subbyte-0x58), 1)
+						data += data.slice(-m, 1)
 
 						next
 					when 0x60-0x6f
+						x = subbyte.divmod(16)[1]
+
 						data << file.getc
-						data << (data.slice(-2, 1)[0] + (subbyte-0x60))
+						data << (data.slice(-2, 1)[0] + x)
 
 						next
 					when 0x70-0x7f
+						x = subbyte.divmod(16)[1]
+
 						data << file.getc
-						data << (data.slice(-2, 1)[0] - (subbyte-0x70))
+						data << (data.slice(-2, 1)[0] - x)
 
 						next
 					when 0x80-0x8f
-						data << (data.slice(-2, 1)[0] + (subbyte-0x80))
+						x = subbyte.divmod(16)[1]
+
+						data << (data.slice(-2, 1)[0] + x)
 						data += data.slice(-2, 1)
 
 						next
 					when 0x90-0x9f
-						data << (data.slice(-2, 1)[0] + (subbyte-0x90))
+						x = subbyte.divmod(16)[1]
+
+						data << (data.slice(-2, 1)[0] + x)
 						data << file.getc
 
 						next
@@ -258,11 +271,17 @@ class RivenBitmap
 
 						next
 					when 0xc0-0xcf
-						# TODO: implement
+						x = subbyte.divmod(16)[1]
+
+						data << (data.slice(-2, 1)[0] - x)
+						data << (data.slice(-2, 1)[0])
 
 						next
 					when 0xd0-0xdf
-						# TODO: implement
+						x = subbyte.divmod(16)[1]
+
+						data << (data.slice(-2, 1)[0] - x)
+						data << file.getc
 
 						next
 					when 0xe0
@@ -280,7 +299,20 @@ class RivenBitmap
 
 						next
 					when 0xfc
-						# TODO: implement
+						# FIXME: make more readable and/or less ridiculous
+
+						nrm1 = file.getc
+						m = file.getc
+
+						n = nrm1.divmod(8)[0]
+						r = nrm1.divmod(8)[1].divmod(4)[0]
+						m += nrm1.divmod(4)[1]*4
+
+						data += (data.slice(-m, n*2+2))
+
+						if r == 0
+							data << file.getc
+						end
 
 						next
 					when 0xff
