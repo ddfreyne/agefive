@@ -192,8 +192,8 @@ class RivenBitmap
 
 						next
 					when 0x80-0x8f
-						data << (data.slice(-2,1)[0] + (subbyte-0x80))
-						data += data.slice(-2,1)
+						data << (data.slice(-2, 1)[0] + (subbyte-0x80))
+						data += data.slice(-2, 1)
 
 						next
 					when 0x90-0x9f
@@ -202,21 +202,17 @@ class RivenBitmap
 
 						next
 					when 0xa0
-						xy = file.getc
-						x = # first half of the byte
-						y = # second half of the byte
+						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2,1)[0] + x)
-						data << (data.slice(-2,1)[0] + y)
+						data << (data.slice(-2, 1)[0] + xy[0])
+						data << (data.slice(-2, 1)[0] + xy[1])
 
 						next
 					when 0xb0
-						xy = file.getc
-						x = # first half of the byte
-						y = # second half of the byte
+						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2,1)[0] + x)
-						data << (data.slice(-2,1)[0] - y)
+						data << (data.slice(-2, 1)[0] + xy[0])
+						data << (data.slice(-2, 1)[0] - xy[1])
 
 						next
 					when 0xc0-0xcf
@@ -228,21 +224,17 @@ class RivenBitmap
 
 						next
 					when 0xe0
-						xy = file.getc
-						x = # first half of the byte
-						y = # second half of the byte
+						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2,1)[0] - x)
-						data << (data.slice(-2,1)[0] + y)
+						data << (data.slice(-2, 1)[0] - xy[0])
+						data << (data.slice(-2, 1)[0] + xy[1])
 
 						next
 					when 0xf0
-						xy = file.getc
-						x = # first half of the byte
-						y = # second half of the byte
+						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2,1)[0] - x)
-						data << (data.slice(-2,1)[0] - y)
+						data << (data.slice(-2, 1)[0] - xy[0])
+						data << (data.slice(-2, 1)[0] - xy[1])
 
 						next
 					when 0xfc
@@ -250,12 +242,10 @@ class RivenBitmap
 
 						next
 					when 0xff
-						xy = file.getc
-						x = # first half of the byte
-						y = # second half of the byte
+						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2,1)[0] - x)
-						data << (data.slice(-2,1)[0] - y)
+						data << (data.slice(-2, 1)[0] - xy[0])
+						data << (data.slice(-2, 1)[0] - xy[1])
 
 						next
 					else
