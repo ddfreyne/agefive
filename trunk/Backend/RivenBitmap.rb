@@ -50,8 +50,6 @@ class RivenBitmap
 		else
 			@data = data
 		end
-
-		puts @data.size
 	end
 
 	def compressed?
@@ -81,43 +79,108 @@ class RivenBitmap
 
 		data = []
 
-		done = 0
+		while not file.eof?
+			puts "  Position: "+file.pos.to_s+" out of "+@size.to_s
 
-		(@size - @dataOffset).times do # FIXME: that's not quite right. we need to really stop at eof
-			if done == 1
-				return data
-			end
+			(file.close; return data) if data.size == (@width*@height)
 
 			byte = file.getc
 
 			case byte
 			when 0x00
-				puts "done!"
-				done = 1
+				(file.close; return data)
+
 				break
 			when 0x01..0x3f
+				# output byte*2 pixels
 				puts "outputting "+(byte*2).to_s+" pixels:"
 				(byte*2).times do
-					data << file.read(1).unpack('C')
+					data << file.read(1)#.unpack('C')
 				end
-				done = 1 # FIXME: temporary
+				# FIXME: can't we just do:
+				# byte.times do
+					# data << file.read(byte*2).unpack('CC')
+				# or something even simpler without #times
+
 				next
 			when 0x40..0x7f
+				# repeat last 2 pixels byte-0x40 times
 				puts "repeat last 2 pixels "+(byte-0x40).to_s+" times!"
+				(byte-0x40).times do
+					data += data.last(2)
+				end
+
 				next
 			when 0x80..0xbf
+				# repeat last 4 pixels byte-0x80 times
 				puts "repeat last 4 pixels "+(byte-0x80).to_s+" times!"
+				(byte-0x80).times do
+					data += data.last(4)
+				end
+
 				next
 			when 0xc0..0xff
+				# byte-0xc0 subcommands will follow
 				puts (byte-0xc0).to_s+" subcommands will follow!"
-				next
-			else
-				puts "something else, ooh"
+				(byte-0xc0).times do
+					puts "  Position: "+file.pos.to_s+" out of "+@size.to_s
+
+					subbyte = file.getc
+
+					case subbyte
+					when 0x01..0x0f
+						# repeat duplet subbyte duplets before
+						puts "repeat duplet "+subbyte.to_s+" duplets before"
+
+						data += data.slice(-subbyte*2, subbyte*2)
+
+						next
+					when 0x10
+						# repeat last duplet, but change second pixel to next byte
+						puts "repeat last duplet, but change second pixel"
+
+						data += data.slice(-2, 1)
+						data << file.read(1)
+
+						next
+					when 0x11-0x1f
+						# TODO: implement
+
+						next
+					when 0x20-0x2f
+						# TODO: implement
+
+						data += data.last(2)
+						data.last += (subbyte-0x20)
+
+						next
+					when 0x30-0x3f
+						# TODO: implement
+
+						data += data.last(2)
+						data.last -= (subbyte-0x30)
+
+						next
+					when 0x40
+						# repeat last duplet, but change first pixel to next byte
+						puts "repeat last duplet, but change first pixel"
+
+						data << file.read(1)
+						data += data.slice(-2, 1)
+
+						next
+					else
+						puts "unknown subcommand"
+
+						next
+					end
+				end
+
 				next
 			end
 		end
 
-		return data
+		(file.close; return data)
 	end
 
 	def headers
@@ -202,16 +265,18 @@ class RivenBitmap
 			end
 		end
 
-		# TODO: fill with actual, non-random image data
+		# TODO: verify that the data isn't upside-down
+		# FIXME: need to fill out each row to multiples of four(?)
 		srand 1234
-		@height.downto(0) do |row| # rows are stored backwards
+		internalOffset = 0
+		(@height-1).downto(0) do |row| # rows are stored backwards
 			@width.times do |column|
-				file.write([rand(255)].pack('C'))
+#				file.write([rand(255)].pack('C'))
+				file.write(@data[internalOffset])
+				puts row.to_s+' '+column.to_s+' '+internalOffset.to_s+' '+(@data[internalOffset].to_s)
+				internalOffset+=1
 			end
 		end
-		# (@width*@height).times do
-		# 	file.write([rand(255)].pack('C'))
-		# end
 
 		file.close
 	end
