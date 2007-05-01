@@ -21,11 +21,9 @@
 # The Riven tBMP bitmap format, as detailed at
 # http://www.dalcanton.it/tito/esperimenti/riven/tbmp.html, can contain 8- or
 # 24-bit images, optionally compressed in a proprietary algorithm.
-# contains inline Metadata on what data an archive contains, and where. Since
-# this information is unlikely to change often (if at all), it is useful to
-# cache it when first gathered.
-# This also especially helps with the 5-CD-ROM version, where four out of five
-# media (and thus, their archive Metadata) are typically offline.
+#
+# RivenBitmap can extract the image data for internal use, and optionally
+# dump it to a Windows V3 Bitmap file.
 
 # TODO: For now, 8-bit is assumed.
 
@@ -52,12 +50,19 @@ class RivenBitmap
 		end
 	end
 
-	def compressed?
-		if @compressed == 4
-			return true
-		else
-			return false
-		end
+	def headers
+		file = File.new(@path, 'r')
+		file.seek(@offset)
+
+		@width = file.read(2).unpack('n')[0]
+		@height = file.read(2).unpack('n')[0]
+
+		@bytesPerRow = file.read(2).unpack('n')[0]
+
+		@compressed = file.read(1).unpack('C')[0]
+		@truecolor = file.read(1).unpack('C')[0]
+
+		file.close
 	end
 
 	def truecolor?
@@ -66,6 +71,33 @@ class RivenBitmap
 		# else
 			return false
 		# end
+	end
+
+	def compressed?
+		if @compressed == 4
+			return true
+		else
+			return false
+		end
+	end
+
+	def palette
+		# in BGR form
+
+		palette = []
+
+		file = File.new(@path, 'r')
+		file.seek(@offset+8+4) # skipping headers and unknown field
+
+		256.times do |i|
+			palette << file.read(3).unpack('CCC')
+		end
+
+		@dataOffset = file.pos
+
+		file.close
+
+		return palette
 	end
 
 	def data
@@ -270,40 +302,6 @@ class RivenBitmap
 		end
 
 		(file.close; return data)
-	end
-
-	def headers
-		file = File.new(@path, 'r')
-		file.seek(@offset)
-
-		@width = file.read(2).unpack('n')[0]
-		@height = file.read(2).unpack('n')[0]
-
-		@bytesPerRow = file.read(2).unpack('n')[0]
-
-		@compressed = file.read(1).unpack('C')[0]
-		@truecolor = file.read(1).unpack('C')[0]
-
-		file.close
-	end
-
-	def palette
-		# in BGR form
-
-		palette = []
-
-		file = File.new(@path, 'r')
-		file.seek(@offset+8+4) # skipping headers and unknown field
-
-		256.times do |i|
-			palette << file.read(3).unpack('CCC')
-		end
-
-		@dataOffset = file.pos
-
-		file.close
-
-		return palette
 	end
 
 	def flipVertically(data)
