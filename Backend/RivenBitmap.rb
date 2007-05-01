@@ -233,70 +233,152 @@ class RivenBitmap
 						x = subbyte.divmod(16)[1]
 
 						data << file.getc
-						data << (data.slice(-2, 1)[0] + x)
+						data << (data.slice(-2, 1)[0].to_i + x)
 
 						next
 					when 0x70..0x7f
 						x = subbyte.divmod(16)[1]
 
 						data << file.getc
-						data << (data.slice(-2, 1)[0] - x)
+						data << (data.slice(-2, 1)[0].to_i - x)
 
 						next
 					when 0x80..0x8f
 						x = subbyte.divmod(16)[1]
 
-						data << (data.slice(-2, 1)[0] + x)
+						data << (data.slice(-2, 1)[0].to_i + x)
 						data += data.slice(-2, 1)
 
 						next
 					when 0x90..0x9f
 						x = subbyte.divmod(16)[1]
 
-						data << (data.slice(-2, 1)[0] + x)
+						data << (data.slice(-2, 1)[0].to_i + x)
 						data << file.getc
 
 						next
 					when 0xa0
 						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2, 1)[0] + xy[0])
-						data << (data.slice(-2, 1)[0] + xy[1])
+						data << (data.slice(-2, 1)[0].to_i + xy[0])
+						data << (data.slice(-2, 1)[0].to_i + xy[1])
+
+						next
+					when 0xa4..0xa7
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 2*2)
+						data << file.getc
+
+						next
+					when 0xa8..0xab
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 2*2)
+
+						next
+					when 0xac..0xaf
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 3*2)
+						data << file.getc
 
 						next
 					when 0xb0
 						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2, 1)[0] + xy[0])
-						data << (data.slice(-2, 1)[0] - xy[1])
+						data << (data.slice(-2, 1)[0].to_i + xy[0])
+						data << (data.slice(-2, 1)[0].to_i - xy[1])
+
+						next
+					when 0xb4..0xb7
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 3*2)
+
+						next
+					when 0xb8..0xbb
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 4*2)
+						data << file.getc
+
+						next
+					when 0xbc..0xbf
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 4*2)
 
 						next
 					when 0xc0..0xcf
 						x = subbyte.divmod(16)[1]
 
-						data << (data.slice(-2, 1)[0] - x)
-						data << (data.slice(-2, 1)[0])
+						data << (data.slice(-2, 1)[0].to_i - x)
+						data << (data.slice(-2, 1)[0].to_i)
 
 						next
 					when 0xd0..0xdf
 						x = subbyte.divmod(16)[1]
 
-						data << (data.slice(-2, 1)[0] - x)
+						data << (data.slice(-2, 1)[0].to_i - x)
 						data << file.getc
 
 						next
 					when 0xe0
 						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2, 1)[0] - xy[0])
-						data << (data.slice(-2, 1)[0] + xy[1])
+						data << (data.slice(-2, 1)[0].to_i - xy[0])
+						data << (data.slice(-2, 1)[0].to_i + xy[1])
+
+						next
+					when 0xe4..0xe7
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 5*2)
+
+						next
+					when 0xe8..0xeb
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 5*2)
+
+						next
+					when 0xec..0xef
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 6*2)
+						data << file.getc
 
 						next
 					when 0xf0
 						xy = file.getc.divmod(16)
 
-						data << (data.slice(-2, 1)[0] - xy[0])
-						data << (data.slice(-2, 1)[0] - xy[1])
+						data << (data.slice(-2, 1)[0].to_i - xy[0])
+						data << (data.slice(-2, 1)[0].to_i - xy[1])
+
+						next
+					when 0xf4..0xf7
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 6*2)
+
+						next
+					when 0xf8..0xfb
+						m = file.getc
+						m += subbyte.divmod(4)[1]*255
+
+						data += data.slice(-m, 7*2)
+						data << file.getc
 
 						next
 					when 0xfc
@@ -307,7 +389,7 @@ class RivenBitmap
 
 						n = nrm1.divmod(8)[0]
 						r = nrm1.divmod(8)[1].divmod(4)[0]
-						m += nrm1.divmod(4)[1]*4
+						m += nrm1.divmod(4)[1]*255
 
 						data += (data.slice(-m, n*2+2))
 
