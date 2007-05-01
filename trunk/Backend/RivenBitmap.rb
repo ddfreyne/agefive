@@ -40,7 +40,7 @@ class RivenBitmap
 		headers
 
 		if truecolor?
-			@dataOffset = @offset+8+4+4
+			@dataOffset = @offset+8+4
 		else
 			@palette = palette
 		end
@@ -71,9 +71,19 @@ class RivenBitmap
 	def data
 		file = File.new(@path, 'r')
 		file.seek(@dataOffset)
+
+		data = []
+
+		while not file.eof?
+			data << file.getc
+		end
+
+		return data
 	end
 
 	def decompressedData
+		@dataOffset += 4
+
 		file = File.new(@path, 'r')
 		file.seek(@dataOffset)
 
@@ -289,14 +299,28 @@ class RivenBitmap
 			palette << file.read(3).unpack('CCC')
 		end
 
-		@dataOffset = file.pos+4
+		@dataOffset = file.pos
 
 		file.close
 
 		return palette
 	end
 
+	def flipVertically(data)
+		oldData = []
+		oldData += @data
+		flippedData = []
+
+		(oldData.length / @bytesPerRow).times do
+			flippedData += oldData.slice!(-(@bytesPerRow), @bytesPerRow)
+		end
+
+		return flippedData
+	end
+
 	def dumpBMP(path)
+		bmpData = flipVertically(data)
+
 		file = File.new(path, 'w')
 
 		file.write("BM") # magic word
@@ -351,8 +375,8 @@ class RivenBitmap
 		(@height-1).downto(0) do |row| # rows are stored backwards
 			@width.times do |column|
 #				file.write([rand(255)].pack('C'))
-				file.write(@data[internalOffset])
-				puts row.to_s+' '+column.to_s+' '+internalOffset.to_s+' '+(@data[internalOffset].to_s)
+				file.putc(bmpData[internalOffset])
+				puts row.to_s+' '+column.to_s+' '+internalOffset.to_s+' '+(bmpData[internalOffset].to_s)
 				internalOffset+=1
 			end
 		end
