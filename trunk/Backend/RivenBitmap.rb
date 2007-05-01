@@ -19,7 +19,8 @@
 #
 
 # The Riven tBMP bitmap format, as detailed at
-# http://www.dalcanton.it/tito/esperimenti/riven/tbmp.html, can contain 8- or
+# http://www.dalcanton.it/tito/esperimenti/riven/tbmp.html as well as
+# http://www.mystellany.com/riven/imageformat/, can contain 8- or
 # 24-bit images, optionally compressed in a proprietary algorithm.
 #
 # RivenBitmap can extract the image data for internal use, and optionally
@@ -175,25 +176,25 @@ class RivenBitmap
 						data << file.getc
 
 						next
-					when 0x11-0x1f
+					when 0x11..0x1f
 						m = subbyte.divmod(16)[1]
 
 						data += data.slice(-2, 1)
 						data += data.slice(-m, 1)
 
 						next
-					when 0x20-0x2f
+					when 0x20..0x2f
 						x = subbyte.divmod(16)[1]
 
 						data += data.last(2)
-						data.last += x
+						data[-1] += x
 
 						next
-					when 0x30-0x3f
+					when 0x30..0x3f
 						x = subbyte.divmod(16)[1]
 
 						data += data.last(2)
-						data.last -= x
+						data[-1] -= x
 
 						next
 					when 0x40
@@ -201,7 +202,7 @@ class RivenBitmap
 						data += data.slice(-2, 1)
 
 						next
-					when 0x41-0x4f
+					when 0x41..0x4f
 						m = subbyte.divmod(16)[1]
 
 						data += data.slice(-m, 1)
@@ -214,42 +215,42 @@ class RivenBitmap
 						end
 
 						next
-					when 0x51-0x57
+					when 0x51..0x57
 						m = subbyte.divmod(8)[1]
 
 						data += data.slice(-m, 1)
 						data << file.getc
 
 						next
-					when 0x59-0x5f
+					when 0x59..0x5f
 						m = subbyte.divmod(8)[1]
 
 						data << file.getc
 						data += data.slice(-m, 1)
 
 						next
-					when 0x60-0x6f
+					when 0x60..0x6f
 						x = subbyte.divmod(16)[1]
 
 						data << file.getc
 						data << (data.slice(-2, 1)[0] + x)
 
 						next
-					when 0x70-0x7f
+					when 0x70..0x7f
 						x = subbyte.divmod(16)[1]
 
 						data << file.getc
 						data << (data.slice(-2, 1)[0] - x)
 
 						next
-					when 0x80-0x8f
+					when 0x80..0x8f
 						x = subbyte.divmod(16)[1]
 
 						data << (data.slice(-2, 1)[0] + x)
 						data += data.slice(-2, 1)
 
 						next
-					when 0x90-0x9f
+					when 0x90..0x9f
 						x = subbyte.divmod(16)[1]
 
 						data << (data.slice(-2, 1)[0] + x)
@@ -270,14 +271,14 @@ class RivenBitmap
 						data << (data.slice(-2, 1)[0] - xy[1])
 
 						next
-					when 0xc0-0xcf
+					when 0xc0..0xcf
 						x = subbyte.divmod(16)[1]
 
 						data << (data.slice(-2, 1)[0] - x)
 						data << (data.slice(-2, 1)[0])
 
 						next
-					when 0xd0-0xdf
+					when 0xd0..0xdf
 						x = subbyte.divmod(16)[1]
 
 						data << (data.slice(-2, 1)[0] - x)
@@ -323,7 +324,7 @@ class RivenBitmap
 
 						next
 					else
-						puts "unknown subcommand"
+						puts "unknown subcommand: "+subbyte.to_s
 
 						next
 					end
