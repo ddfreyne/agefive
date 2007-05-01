@@ -82,8 +82,6 @@ class RivenBitmap
 		while not file.eof?
 			puts "  Position: "+file.pos.to_s+" out of "+@size.to_s
 
-			(file.close; return data) if data.size == (@width*@height)
-
 			byte = file.getc
 
 			case byte
@@ -95,12 +93,8 @@ class RivenBitmap
 				# output byte*2 pixels
 				puts "outputting "+(byte*2).to_s+" pixels:"
 				(byte*2).times do
-					data << file.read(1)#.unpack('C')
+					data << file.getc
 				end
-				# FIXME: can't we just do:
-				# byte.times do
-					# data << file.read(byte*2).unpack('CC')
-				# or something even simpler without #times
 
 				next
 			when 0x40..0x7f
@@ -140,23 +134,20 @@ class RivenBitmap
 						puts "repeat last duplet, but change second pixel"
 
 						data += data.slice(-2, 1)
-						data << file.read(1)
+						data << file.getc
 
 						next
 					when 0x11-0x1f
-						# TODO: implement
+						data += data.slice(-2, 1)
+						data += data.slice(-(subbyte-0x10), 1)
 
 						next
 					when 0x20-0x2f
-						# TODO: implement
-
 						data += data.last(2)
 						data.last += (subbyte-0x20)
 
 						next
 					when 0x30-0x3f
-						# TODO: implement
-
 						data += data.last(2)
 						data.last -= (subbyte-0x30)
 
@@ -167,6 +158,104 @@ class RivenBitmap
 
 						data << file.read(1)
 						data += data.slice(-2, 1)
+
+						next
+					when 0x41-0x4f
+						data += data.slice(-(subbyte-0x40), 1)
+						data += data.slice(-2, 1)
+
+						next
+					when 0x50
+						2.times do
+							data << file.getc
+						end
+
+						next
+					when 0x51-0x57
+						data += data.slice(-(subbyte-0x50), 1)
+						data << file.getc
+
+						next
+					when 0x59-0x5f
+						data << file.getc
+						data += data.slice(-(subbyte-0x58), 1)
+
+						next
+					when 0x60-0x6f
+						data << file.getc
+						data << (data.slice(-2, 1)[0] + (subbyte-0x60))
+
+						next
+					when 0x70-0x7f
+						data << file.getc
+						data << (data.slice(-2, 1)[0] - (subbyte-0x70))
+
+						next
+					when 0x80-0x8f
+						data << (data.slice(-2,1)[0] + (subbyte-0x80))
+						data += data.slice(-2,1)
+
+						next
+					when 0x90-0x9f
+						data << (data.slice(-2, 1)[0] + (subbyte-0x90))
+						data << file.getc
+
+						next
+					when 0xa0
+						xy = file.getc
+						x = # first half of the byte
+						y = # second half of the byte
+
+						data << (data.slice(-2,1)[0] + x)
+						data << (data.slice(-2,1)[0] + y)
+
+						next
+					when 0xb0
+						xy = file.getc
+						x = # first half of the byte
+						y = # second half of the byte
+
+						data << (data.slice(-2,1)[0] + x)
+						data << (data.slice(-2,1)[0] - y)
+
+						next
+					when 0xc0-0xcf
+						# TODO: implement
+
+						next
+					when 0xd0-0xdf
+						# TODO: implement
+
+						next
+					when 0xe0
+						xy = file.getc
+						x = # first half of the byte
+						y = # second half of the byte
+
+						data << (data.slice(-2,1)[0] - x)
+						data << (data.slice(-2,1)[0] + y)
+
+						next
+					when 0xf0
+						xy = file.getc
+						x = # first half of the byte
+						y = # second half of the byte
+
+						data << (data.slice(-2,1)[0] - x)
+						data << (data.slice(-2,1)[0] - y)
+
+						next
+					when 0xfc
+						# TODO: implement
+
+						next
+					when 0xff
+						xy = file.getc
+						x = # first half of the byte
+						y = # second half of the byte
+
+						data << (data.slice(-2,1)[0] - x)
+						data << (data.slice(-2,1)[0] - y)
 
 						next
 					else
