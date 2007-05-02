@@ -303,7 +303,7 @@ class RivenBitmap
 						next
 					when 0xa4..0xa7
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 2 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
@@ -313,7 +313,7 @@ class RivenBitmap
 						next
 					when 0xa8..0xab
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 2 pixel duplets from "+m.to_s+" bytes ago"
 
@@ -322,7 +322,7 @@ class RivenBitmap
 						next
 					when 0xac..0xaf
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 3 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
@@ -341,7 +341,7 @@ class RivenBitmap
 						next
 					when 0xb4..0xb7
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 3 pixel duplets from "+m.to_s+" bytes ago"
 
@@ -350,7 +350,7 @@ class RivenBitmap
 						next
 					when 0xb8..0xbb
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 4 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
@@ -360,7 +360,7 @@ class RivenBitmap
 						next
 					when 0xbc..0xbf
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 4 pixel duplets from "+m.to_s+" bytes ago"
 
@@ -396,7 +396,7 @@ class RivenBitmap
 						next
 					when 0xe4..0xe7
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 5 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
@@ -406,7 +406,7 @@ class RivenBitmap
 						next
 					when 0xe8..0xeb
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 5 pixel duplets from "+m.to_s+" bytes ago"
 
@@ -415,7 +415,7 @@ class RivenBitmap
 						next
 					when 0xec..0xef
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 6 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
@@ -434,7 +434,7 @@ class RivenBitmap
 						next
 					when 0xf4..0xf7
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 6 pixel duplets from "+m.to_s+" bytes ago"
 
@@ -443,7 +443,7 @@ class RivenBitmap
 						next
 					when 0xf8..0xfb
 						m = file.getc
-						m += subbyte.divmod(4)[1]*255
+						m += subbyte.divmod(4)[1]*256
 
 						puts "copy 7 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
@@ -459,7 +459,7 @@ class RivenBitmap
 
 						n = nrm1.divmod(8)[0]
 						r = nrm1.divmod(8)[1].divmod(4)[0]
-						m += nrm1.divmod(4)[1]*255
+						m += nrm1.divmod(4)[1]*256
 
 						puts "repeat "+n.to_s+"+2 duplets from "+m.to_s+" pixels ago."
 
