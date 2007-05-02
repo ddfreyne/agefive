@@ -124,6 +124,7 @@ class RivenBitmap
 
 		while not file.eof?
 			puts "  Position: "+file.pos.to_s+" out of "+@size.to_s
+			puts "      Size: "+data.size.to_s+" out of "+(@width*@height).to_s
 
 			byte = file.getc
 
@@ -134,7 +135,7 @@ class RivenBitmap
 				break
 			when 0x01..0x3f
 				# output byte*2 pixels
-				puts "outputting "+(byte*2).to_s+" pixels:"
+				puts "outputting "+(byte*2).to_s+" pixels"
 				(byte*2).times do
 					data << file.getc
 				end
@@ -160,7 +161,8 @@ class RivenBitmap
 				# byte-0xc0 subcommands will follow
 				puts (byte-0xc0).to_s+" subcommands will follow!"
 				(byte-0xc0).times do
-					puts "  Position: "+file.pos.to_s+" out of "+@size.to_s
+					puts "  Subposition: "+file.pos.to_s+" out of "+@size.to_s
+					puts "         Size: "+data.size.to_s+" out of "+(@width*@height).to_s
 
 					subbyte = file.getc
 
@@ -168,16 +170,22 @@ class RivenBitmap
 					when 0x01..0x0f
 						m = subbyte.divmod(16)[1]
 
-						data += data.slice(-m*2, m*2)
+						puts "copy the pixel duplet "+m.to_s+" duplets ago"
+
+						data += data.slice(-m*2, 2)
 
 						next
 					when 0x10
+						puts "copy the last pixel duplet, replacing the second pixel with x"
+
 						data += data.slice(-2, 1)
 						data << file.getc
 
 						next
 					when 0x11..0x1f
 						m = subbyte.divmod(16)[1]
+
+						puts "copy the last pixel duplet, replacing the second pixel with that "+m.to_s+" bytes ago"
 
 						data += data.slice(-2, 1)
 						data += data.slice(-m, 1)
@@ -186,6 +194,8 @@ class RivenBitmap
 					when 0x20..0x2f
 						x = subbyte.divmod(16)[1]
 
+						puts "copy the last pixel duplet, adding x to the second pixel"
+
 						data += data.last(2)
 						data[-1] += x
 
@@ -193,11 +203,15 @@ class RivenBitmap
 					when 0x30..0x3f
 						x = subbyte.divmod(16)[1]
 
+						puts "copy the last pixel duplet, substracting x to the second pixel"
+
 						data += data.last(2)
 						data[-1] -= x
 
 						next
 					when 0x40
+						puts "copy the last pixel duplet, replacing the first pixel with x"
+
 						data << file.read(1)
 						data += data.slice(-2, 1)
 
@@ -205,11 +219,15 @@ class RivenBitmap
 					when 0x41..0x4f
 						m = subbyte.divmod(16)[1]
 
+						puts "copy the last pixel duplet, replacing the first pixel with that "+m.to_s+" bytes ago"
+
 						data += data.slice(-m, 1)
 						data += data.slice(-2, 1)
 
 						next
 					when 0x50
+						puts "output x and y"
+
 						2.times do
 							data << file.getc
 						end
@@ -218,12 +236,16 @@ class RivenBitmap
 					when 0x51..0x57
 						m = subbyte.divmod(8)[1]
 
+						puts "copy the pixel from "+m.to_s+" bytes ago, then output x"
+
 						data += data.slice(-m, 1)
 						data << file.getc
 
 						next
 					when 0x59..0x5f
 						m = subbyte.divmod(8)[1]
+
+						puts "output x, then copy the pixel from "+m.to_s+" bytes ago"
 
 						data << file.getc
 						data += data.slice(-m, 1)
@@ -232,12 +254,16 @@ class RivenBitmap
 					when 0x60..0x6f
 						x = subbyte.divmod(16)[1]
 
+						puts "copy the last pixel duplet, then replace the first byte with x and add y to the second"
+
 						data << file.getc
 						data << (data.slice(-2, 1)[0].to_i + x)
 
 						next
 					when 0x70..0x7f
 						x = subbyte.divmod(16)[1]
+
+						puts "copy the last pixel duplet, then replace the first byte with x and substract y from the second"
 
 						data << file.getc
 						data << (data.slice(-2, 1)[0].to_i - x)
@@ -246,6 +272,8 @@ class RivenBitmap
 					when 0x80..0x8f
 						x = subbyte.divmod(16)[1]
 
+						puts "copy the last pixel duplet, then add x to the first byte"
+
 						data << (data.slice(-2, 1)[0].to_i + x)
 						data += data.slice(-2, 1)
 
@@ -253,12 +281,16 @@ class RivenBitmap
 					when 0x90..0x9f
 						x = subbyte.divmod(16)[1]
 
+						puts "copy the last pixel duplet, then add x to the first byte and replace the second by y"
+
 						data << (data.slice(-2, 1)[0].to_i + x)
 						data << file.getc
 
 						next
 					when 0xa0
 						xy = file.getc.divmod(16)
+
+						puts "copy the last pixel duplet, then add x to the first byte and y to the second"
 
 						data << (data.slice(-2, 1)[0].to_i + xy[0])
 						data << (data.slice(-2, 1)[0].to_i + xy[1])
@@ -268,6 +300,8 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 2 pixel duplets from "+m.to_s+" bytes ago, then add another"
+
 						data += data.slice(-m, 2*2)
 						data << file.getc
 
@@ -276,6 +310,8 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 2 pixel duplets from "+m.to_s+" bytes ago"
+
 						data += data.slice(-m, 2*2)
 
 						next
@@ -283,12 +319,16 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 3 pixel duplets from "+m.to_s+" bytes ago, then add another"
+
 						data += data.slice(-m, 3*2)
 						data << file.getc
 
 						next
 					when 0xb0
 						xy = file.getc.divmod(16)
+
+						puts "repeat last duplet, adding x to the first pixel and substracting y from the second"
 
 						data << (data.slice(-2, 1)[0].to_i + xy[0])
 						data << (data.slice(-2, 1)[0].to_i - xy[1])
@@ -298,12 +338,16 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 3 pixel duplets from "+m.to_s+" bytes ago"
+
 						data += data.slice(-m, 3*2)
 
 						next
 					when 0xb8..0xbb
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
+
+						puts "copy 4 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 4*2)
 						data << file.getc
@@ -313,11 +357,15 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 4 pixel duplets from "+m.to_s+" bytes ago"
+
 						data += data.slice(-m, 4*2)
 
 						next
 					when 0xc0..0xcf
 						x = subbyte.divmod(16)[1]
+
+						puts "repeat last duplet, substracting x from the first pixel"
 
 						data << (data.slice(-2, 1)[0].to_i - x)
 						data << (data.slice(-2, 1)[0].to_i)
@@ -326,12 +374,16 @@ class RivenBitmap
 					when 0xd0..0xdf
 						x = subbyte.divmod(16)[1]
 
+						puts "repeat last duplet's first pixel, substracting x, then add another"
+
 						data << (data.slice(-2, 1)[0].to_i - x)
 						data << file.getc
 
 						next
 					when 0xe0
 						xy = file.getc.divmod(16)
+
+						puts "repeat last duplet, substracting x from the first pixel and adding y to the second"
 
 						data << (data.slice(-2, 1)[0].to_i - xy[0])
 						data << (data.slice(-2, 1)[0].to_i + xy[1])
@@ -341,12 +393,17 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 5 pixel duplets from "+m.to_s+" bytes ago, then add another"
+
 						data += data.slice(-m, 5*2)
+						data << file.getc
 
 						next
 					when 0xe8..0xeb
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
+
+						puts "copy 5 pixel duplets from "+m.to_s+" bytes ago"
 
 						data += data.slice(-m, 5*2)
 
@@ -355,12 +412,16 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 6 pixel duplets from "+m.to_s+" bytes ago, then add another"
+
 						data += data.slice(-m, 6*2)
 						data << file.getc
 
 						next
 					when 0xf0
 						xy = file.getc.divmod(16)
+
+						puts "repeat last duplet, substracting x from the first pixel and y from the second"
 
 						data << (data.slice(-2, 1)[0].to_i - xy[0])
 						data << (data.slice(-2, 1)[0].to_i - xy[1])
@@ -370,12 +431,16 @@ class RivenBitmap
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
 
+						puts "copy 6 pixel duplets from "+m.to_s+" bytes ago"
+
 						data += data.slice(-m, 6*2)
 
 						next
 					when 0xf8..0xfb
 						m = file.getc
 						m += subbyte.divmod(4)[1]*255
+
+						puts "copy 7 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 7*2)
 						data << file.getc
@@ -391,15 +456,20 @@ class RivenBitmap
 						r = nrm1.divmod(8)[1].divmod(4)[0]
 						m += nrm1.divmod(4)[1]*255
 
+						puts "repeat "+n.to_s+"+2 duplets from "+m+" pixels ago."
+
 						data += (data.slice(-m, n*2+2))
 
 						if r == 0
+							puts "also, add another"
 							data << file.getc
 						end
 
 						next
 					when 0xff
 						xy = file.getc.divmod(16)
+
+						puts "repeat last duplet, substracting x from the first pixel and y from the second"
 
 						data << (data.slice(-2, 1)[0] - xy[0])
 						data << (data.slice(-2, 1)[0] - xy[1])
