@@ -174,7 +174,6 @@ class RivenBitmap
 					when 0x01..0x0f
 						m = subbyte.divmod(16)[1]
 
-						puts subbyte
 						puts "copy the pixel duplet "+m.to_s+" duplets ago"
 
 						data += data.slice(-m*2, 2)
@@ -308,7 +307,7 @@ class RivenBitmap
 						puts "copy 2 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 2*2)
-						data << file.getc
+						data[-1] = file.getc
 
 						next
 					when 0xa8..0xab
@@ -327,7 +326,7 @@ class RivenBitmap
 						puts "copy 3 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 3*2)
-						data << file.getc
+						data[-1] = file.getc
 
 						next
 					when 0xb0
@@ -355,7 +354,7 @@ class RivenBitmap
 						puts "copy 4 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 4*2)
-						data << file.getc
+						data[-1] = file.getc
 
 						next
 					when 0xbc..0xbf
@@ -382,7 +381,7 @@ class RivenBitmap
 						puts "repeat last duplet's first pixel, substracting "+x.to_s+", then add another"
 
 						data << (data.slice(-2, 1)[0].to_i - x)
-						data << file.getc
+						data[-1] = file.getc
 
 						next
 					when 0xe0
@@ -401,7 +400,7 @@ class RivenBitmap
 						puts "copy 5 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 5*2)
-						data << file.getc
+						data[-1] = file.getc
 
 						next
 					when 0xe8..0xeb
@@ -420,7 +419,7 @@ class RivenBitmap
 						puts "copy 6 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 6*2)
-						data << file.getc
+						data[-1] = file.getc
 
 						next
 					when 0xf0
@@ -448,7 +447,7 @@ class RivenBitmap
 						puts "copy 7 pixel duplets from "+m.to_s+" bytes ago, then add another"
 
 						data += data.slice(-m, 7*2)
-						data << file.getc
+						data[-1] = file.getc
 
 						next
 					when 0xfc
@@ -466,12 +465,13 @@ class RivenBitmap
 						data += (data.slice(-m, n*2+2))
 
 						if r == 0
-							puts "also, add another"
-							data << file.getc
+							puts "also, replace the last with a new one"
+							data[-1] = file.getc
 						end
 
 						next
 					when 0xff
+						# http://www.mystellany.com/riven/imageformat/ says unused
 						xy = file.getc.divmod(16)
 
 						puts "repeat last duplet, substracting "+xy[0].to_s+" from the first pixel and "+xy[1].to_s+" from the second"
@@ -564,7 +564,11 @@ class RivenBitmap
 		(@height-1).downto(0) do |row| # rows are stored backwards
 			@width.times do |column|
 #				file.write([rand(255)].pack('C'))
-				file.putc(bmpData[internalOffset])
+				if bmpData[internalOffset] != nil
+					file.putc(bmpData[internalOffset])
+				else
+					file.putc(rand(255))
+				end
 				puts row.to_s+' '+column.to_s+' '+internalOffset.to_s+' '+(bmpData[internalOffset].class.to_s)+' '+(bmpData[internalOffset].to_s)
 				internalOffset+=1
 			end
