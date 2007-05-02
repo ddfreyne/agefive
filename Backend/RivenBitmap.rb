@@ -212,7 +212,7 @@ class RivenBitmap
 					when 0x40
 						puts "copy the last pixel duplet, replacing the first pixel with x"
 
-						data << file.read(1)
+						data << file.getc
 						data += data.slice(-2, 1)
 
 						next
@@ -491,7 +491,7 @@ class RivenBitmap
 
 	def flipVertically(data)
 		oldData = []
-		oldData += @data
+		oldData += data
 		flippedData = []
 
 		(oldData.length / @bytesPerRow).times do
@@ -502,7 +502,8 @@ class RivenBitmap
 	end
 
 	def dumpBMP(path)
-		bmpData = flipVertically(data)
+#		bmpData = flipVertically(@data)
+		bmpData = @data
 
 		file = File.new(path, 'w')
 
@@ -559,7 +560,7 @@ class RivenBitmap
 			@width.times do |column|
 #				file.write([rand(255)].pack('C'))
 				file.putc(bmpData[internalOffset])
-				puts row.to_s+' '+column.to_s+' '+internalOffset.to_s+' '+(bmpData[internalOffset].to_s)
+				puts row.to_s+' '+column.to_s+' '+internalOffset.to_s+' '+(bmpData[internalOffset].class.to_s)+' '+(bmpData[internalOffset].to_s)
 				internalOffset+=1
 			end
 		end
