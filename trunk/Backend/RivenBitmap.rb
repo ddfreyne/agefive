@@ -285,7 +285,7 @@ class RivenBitmap
 						puts data.last(2)
 
 						data << file.getc
-						data += data.slice((-m)-1, 1)
+						data += data.slice(-m, 1)
 
 						puts data.last(2)
 
