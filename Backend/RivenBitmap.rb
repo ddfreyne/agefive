@@ -644,21 +644,17 @@ class RivenBitmap
 			end
 		end
 
-		# TODO: verify that the data isn't upside-down
 		# FIXME: need to fill out each row to multiples of four(?)
 		srand 1234
 		internalOffset = 0
-		(@height-1).downto(0) do |row| # rows are stored backwards
-			@width.times do |column|
-#				file.write([rand(255)].pack('C'))
-				if bmpData[internalOffset] != nil
-					file.putc(bmpData[internalOffset])
-				else
-					file.putc(rand(255))
-				end
-				puts row.to_s+' '+column.to_s+' '+internalOffset.to_s+' '+(bmpData[internalOffset].class.to_s)+' '+(bmpData[internalOffset].to_s)
-				internalOffset+=1
+
+		(@height*@width).times do
+			if bmpData[internalOffset] != nil
+				file.putc(bmpData[internalOffset])
+			else
+				file.putc(rand(255))
 			end
+			internalOffset+=1
 		end
 
 		file.close
