@@ -94,9 +94,7 @@ class RivenBitmap
 		file = File.new(@path, 'r')
 		file.seek(@offset+8+4) # skipping headers and unknown field
 
-		256.times do |i|
-			palette << file.read(3).unpack('CCC')
-		end
+		palette << file.read(3*256).unpack('CCC'*256)
 
 		@dataOffset = file.pos
 
@@ -161,18 +159,14 @@ class RivenBitmap
 				# repeat last 2 pixels byte-0x40 times
 				# puts "repeat last 2 pixels "+(byte-0x40).to_s+" times!"
 
-				(byte-0x40).times do
-					data += data.last(2)
-				end
+				data += (data.last(2) * (byte-0x40))
 
 				next
 			when 0x80..0xbf
 				# repeat last 4 pixels byte-0x80 times
 				# puts "repeat last 4 pixels "+(byte-0x80).to_s+" times!"
 
-				(byte-0x80).times do
-					data += data.last(4)
-				end
+				data += (data.last(4) * (byte-0x80))
 
 				next
 			when 0xc0..0xff

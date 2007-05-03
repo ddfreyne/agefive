@@ -233,7 +233,10 @@ class MohawkCatalog
 
 			item << offset
 			item << size
-		
+
+			puts offset
+			puts size
+
 			fileTable << item
 		
 			mhkFile.seek(3, IO::SEEK_CUR)

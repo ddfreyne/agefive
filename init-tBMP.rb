@@ -20,9 +20,14 @@
 
 require 'Backend/RivenBitmap'
 
-tBMP = RivenBitmap.new('/Users/chucker/Repositories/agefive/non-svn/tBMP', 0, 1382)
+# tBMP = RivenBitmap.new('/Users/chucker/Repositories/agefive/non-svn/tBMP', 0, 1382)
+# 
+# tBMP.dumpBMP('/Users/chucker/Repositories/agefive/non-svn/tBMP.bmp')
 
-tBMP.dumpBMP('/Users/chucker/Repositories/agefive/non-svn/tBMP.bmp')
+tBMP = RivenBitmap.new('/Users/chucker/Repositories/agefive/non-svn/1_gsubelevshaft.100-maybe.tBMP', 0, 120696)
+tBMP.dumpBMP('/Users/chucker/Repositories/agefive/non-svn/1_gsubelevshaft.100-maybe.bmp')
+
+
 # tBMP = RivenBitmap.new('/Users/chucker/Repositories/agefive/non-svn/200', 0, 844)
 # 
 # tBMP.dumpBMP('/Users/chucker/Repositories/agefive/non-svn/200.bmp')
