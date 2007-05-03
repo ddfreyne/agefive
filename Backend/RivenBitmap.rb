@@ -549,7 +549,7 @@ class RivenBitmap
 
 						puts "repeat "+n.to_s+"+2 duplets from "+m.to_s+" pixels ago."
 
-						data += (data.slice(-m, n*2+2))
+						data += (data.slice(-m, (n+2)*2))
 
 						if r == 0
 							puts "also, replace the last with a new one"
